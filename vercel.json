@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "buildCommand": "echo no-build",
+  "rewrites": [
+    { "source": "/check", "destination": "/api/check" },
+    { "source": "/validate", "destination": "/api/validate" },
+    { "source": "/admin/enable", "destination": "/api/admin/enable" },
+    { "source": "/admin/disable", "destination": "/api/admin/disable" },
+    { "source": "/admin/status", "destination": "/api/admin/status" }
+  ]
+}
