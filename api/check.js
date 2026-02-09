@@ -1,6 +1,6 @@
-const { getRedis, isEnabled, sign } = require('./lib');
+import { getRedis, isEnabled, sign } from './lib.js';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
   const client = (req.query.client || '').trim();
   if (!client) return res.status(400).json({ licensed: false });
@@ -14,4 +14,4 @@ module.exports = async function handler(req, res) {
     console.error(e);
     res.status(500).json({ licensed: false });
   }
-};
+}

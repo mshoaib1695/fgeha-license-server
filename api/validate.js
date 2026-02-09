@@ -1,6 +1,6 @@
-const { getRedis, verify, isEnabled } = require('./lib');
+import { getRedis, verify, isEnabled } from './lib.js';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
   const token = (req.query.token || '').trim();
   if (!token) return res.status(401).json({ valid: false });
@@ -15,4 +15,4 @@ module.exports = async function handler(req, res) {
     console.error(e);
     res.status(401).json({ valid: false });
   }
-};
+}

@@ -1,4 +1,4 @@
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 const SECRET = process.env.SECRET || 'change-me-in-production';
 
@@ -25,7 +25,7 @@ function verify(token) {
 }
 
 async function getRedis() {
-  const { Redis } = require('@upstash/redis');
+  const { Redis } = await import('@upstash/redis');
   return new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL,
     token: process.env.UPSTASH_REDIS_REST_TOKEN,
@@ -50,4 +50,4 @@ async function listEnabled(redis) {
   return await redis.smembers(KEY);
 }
 
-module.exports = { sign, verify, getRedis, isEnabled, enable, disable, listEnabled, KEY };
+export { sign, verify, getRedis, isEnabled, enable, disable, listEnabled, KEY };
