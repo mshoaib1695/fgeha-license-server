@@ -2,6 +2,8 @@
 
 Control who can use the app: enable when you get payment, disable when you don’t. No need to touch the client’s server.
 
+**Full documentation (env vars, test steps, backend/admin/app wiring):** see [docs/DOCS.md](docs/DOCS.md).
+
 ---
 
 ## Option A: Vercel + Upstash (no server — recommended)
