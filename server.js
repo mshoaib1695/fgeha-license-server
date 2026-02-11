@@ -1,6 +1,6 @@
 /**
  * License server — you deploy this. Hot enable/disable clients by calling /admin/enable and /admin/disable.
- * Set env in .env: SECRET, ADMIN_SECRET, optional ENABLED_CLIENTS=id1,id2 and DATA_FILE path.
+ * Set env in .env: SECRET, ADMIN_SECRET, optional ENABLED_CLIENTS=id1,id2, DATA_FILE path, ENABLED_CACHE_TTL_MS.
  * When UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are set, uses Redis (so you see data in Upstash dashboard).
  */
 import 'dotenv/config';
@@ -34,6 +34,8 @@ const redis = USE_REDIS
   : null;
 
 const ENABLED_KEY = 'enabled';
+const ENABLED_CACHE_TTL_MS = Number(process.env.ENABLED_CACHE_TTL_MS || 5 * 60 * 1000);
+const enabledCache = new Map(); // clientId -> { enabled: boolean, expiresAt: number }
 
 // In-memory set when not using Redis (hot-updated from file or admin API)
 let enabledSet = new Set(
@@ -65,19 +67,29 @@ function saveToFile() {
 }
 
 async function isEnabled(clientId) {
-  if (USE_REDIS) return (await redis.sismember(ENABLED_KEY, clientId)) === 1;
+  if (USE_REDIS) {
+    const now = Date.now();
+    const cached = enabledCache.get(clientId);
+    if (cached && cached.expiresAt > now) return cached.enabled;
+
+    const enabled = (await redis.sismember(ENABLED_KEY, clientId)) === 1;
+    enabledCache.set(clientId, { enabled, expiresAt: now + ENABLED_CACHE_TTL_MS });
+    return enabled;
+  }
   return enabledSet.has(clientId);
 }
 
 async function addEnabled(clientId) {
   if (USE_REDIS) await redis.sadd(ENABLED_KEY, clientId);
   else enabledSet.add(clientId);
+  enabledCache.set(clientId, { enabled: true, expiresAt: Date.now() + ENABLED_CACHE_TTL_MS });
   saveToFile();
 }
 
 async function removeEnabled(clientId) {
   if (USE_REDIS) await redis.srem(ENABLED_KEY, clientId);
   else enabledSet.delete(clientId);
+  enabledCache.set(clientId, { enabled: false, expiresAt: Date.now() + ENABLED_CACHE_TTL_MS });
   saveToFile();
 }
 
